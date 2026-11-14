@@ -15,19 +15,13 @@ import ci553.happyshop.storageAccess.DatabaseRWCreator;
 import javafx.application.Application;
 import javafx.stage.Stage;
 
-/**
- * The main JavaFX application class. This class can be executed directly
- * and starts all HappyShop clients (UIs).
- *
- * It launches the standalone clients (Customer, Picker, Order_Dashboard,
- * Warehouse, EmergencyExit) and links them into a fully working system.
- *
- * It also performs essential setup tasks, such as initializing the
- * order map in OrderHub and registering observers.
- *
- * @version 1.5
- * @author  Shine Shan University of Brighton
- */
+// starts all HappyShop clients (UIs).
+// launches the standalone clients (Customer, Picker, Order_Dashboard,Warehouse, EmergencyExit) and links them
+// performs essential setup tasks, such as initializing the order map in OrderHub and registering observers.
+
+// @version 1.0
+// @author Gx0X
+
 
 public class Main extends Application {
 
@@ -46,27 +40,25 @@ public class Main extends Application {
      * in the same role — working concurrently on shared data.
      */
     @Override
-    public void start(Stage window) {
+    public void start(Stage window)
+    {
         startCustomerClient();
         startPickerClient();
         startOrderDashboard();
-
-        startCustomerClient();
-        startPickerClient();
-        startOrderDashboard();
-
         startWarehouseClient();
-        startWarehouseClient();
+
+        // Note: System should still correctly synchronise data across clients.
+        // startCustomerClient();
+        // startPickerClient();
+        // startOrderDashboard();
+        // startWarehouseClient();
 
         // Initializes the order map for the OrderHub.
         // Must be called after starting observer clients (Order_Dashboard and Picker clients)
         // so they receive updates.
         initializeOrderMap();
-
         startEmergencyExit();
 
-        // Note: You may temporarily comment out duplicate UIs to create more screen space,
-        // but the system should still correctly synchronise data across clients.
     }
 
     /** The customer GUI -search prodduct, add to trolley, cancel/submit trolley, view receipt.
