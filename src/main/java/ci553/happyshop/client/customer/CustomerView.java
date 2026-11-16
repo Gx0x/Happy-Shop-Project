@@ -26,8 +26,8 @@ import javafx.stage.Stage;
 public class CustomerView  {
     public CustomerController cusController;
 
-    private final int WIDTH = UIStyle.customerWinWidth;
-    private final int HEIGHT = UIStyle.customerWinHeight;
+    private final int WIDTH = 1000;
+    private final int HEIGHT = 700;
     private final int COLUMN_WIDTH = WIDTH / 2 - 10;
 
     private HBox hbRoot; // Top-level layout manager
@@ -54,68 +54,83 @@ public class CustomerView  {
         vbTrolleyPage = CreateTrolleyPage();
         vbReceiptPage = createReceiptPage();
 
-        // Create a divider line
+        // DIVIDER LINE //
+        // Changed thickness and colour of diver line
         Line line = new Line(0, 0, 0, HEIGHT);
-        line.setStrokeWidth(4);
-        line.setStroke(Color.PINK);
+        line.setStrokeWidth(20);
+        line.setStroke(Color.ROYALBLUE);
+
         VBox lineContainer = new VBox(line);
         lineContainer.setPrefWidth(4); // Give it some space
         lineContainer.setAlignment(Pos.CENTER);
 
+        // BACKGROUND and BORDER //
+        //Added a border and set colour to match divider line
+        //Changed background to light grey
         hbRoot = new HBox(10, vbSearchPage, lineContainer, vbTrolleyPage); //initialize to show trolleyPage
         hbRoot.setAlignment(Pos.CENTER);
-        hbRoot.setStyle(UIStyle.rootStyleGreen);
+        hbRoot.setStyle(
+                "-fx-background-color: linear-gradient("
+                        + "from 0% 0% to 100% 100%, white 0%, lightblue 100%);"
+                + "; -fx-border-color: royalblue;"
+                + "-fx-border-width: 10px;"
+                + "-fx-padding: 10px;");
 
         Scene scene = new Scene(hbRoot, WIDTH, HEIGHT);
         window.setScene(scene);
-        window.setTitle("🛒 HappyShop Standard Customer Client");
+        window.setTitle("HappyShop Standard Customer Client");
         WinPosManager.registerWindow(window,WIDTH,HEIGHT); //calculate position x and y for this window
         window.show();
         viewWindow=window;// Sets viewWindow to this window for future reference and management.
     }
 
     private VBox createSearchPage() {
-        Label laPageTitle = new Label("🔍 Browse & Search Products 🔍");
-        laPageTitle.setStyle(UIStyle.labelTitleStyle);
 
-        Label laId = new Label("ID:" + " ".repeat(11));
-        laId.setStyle(UIStyle.labelStyle);
-        tfId = new TextField();
-        tfId.setPromptText("eg. 0001");
+        // SEARCH PANEL LABEL //
+        Label laPageTitle = new Label("Search Products");
+        laPageTitle.setStyle(UIStyle.labelTitleStyle
+                + "; -fx-text-fill: royalblue;");
+
+        // SEARCH TEXT BOX //
+        tfId = new TextField(); //Creates text box
         tfId.setStyle(UIStyle.customerTextFieldStyle);
 
-        HBox hbId = new HBox(10, laId, tfId);
-
-        Label laKeyword = new Label("Keyword:");
-        laKeyword.setStyle(UIStyle.labelStyle);
-        tfKeyword = new TextField();
-        tfKeyword.setPromptText("Part of pro_desc (opt task)");
-        tfKeyword.setStyle(UIStyle.customerTextFieldStyle);
-        HBox hbName = new HBox(10, laKeyword, tfKeyword);
-
-        Label laPlaceHolder = new Label(  " ".repeat(15)); //create left-side spacing so that this HBox aligns with others in the layout.
-        Button btnSearch = new Button("Search");
-        btnSearch.setStyle(UIStyle.buttonStyle);
+        // SEARCH BUTTON //
+        Button btnSearch = new Button("\uD83D\uDD0D");
+        btnSearch.setStyle(UIStyle.buttonStyle
+                + "; -fx-background-color: white;"
+                + "; -fx-border-color: royalblue");
         btnSearch.setOnAction(this::buttonClicked);
+
+        // SEARCH ROW LAYOUT //
+        HBox hbId = new HBox(10, btnSearch, tfId); //Aligns Search button next to Search Text Box
+        hbId.setAlignment(Pos.CENTER);
+
+
+
         Button btnAddToTrolley = new Button("Add to Trolley");
         btnAddToTrolley.setStyle(UIStyle.buttonStyle);
         btnAddToTrolley.setOnAction(this::buttonClicked);
-        HBox hbBtns = new HBox(10, laPlaceHolder,btnSearch, btnAddToTrolley);
+        HBox hbBtns = new HBox(10, btnAddToTrolley);
 
-        ivProduct = new ImageView("imageHolder.jpg");
+        ivProduct = new ImageView();
         ivProduct.setFitHeight(60);
         ivProduct.setFitWidth(60);
         ivProduct.setPreserveRatio(true); // Image keeps its original shape and fits inside 60×60
         ivProduct.setSmooth(true); //make it smooth and nice-looking
 
-        lbProductText = new Label("Thank you for shopping with us.");
+        //Removed "Thank you" message
+
+        lbProductText = new Label("");
         lbProductText.setWrapText(true);
-        lbProductText.setMinHeight(Label.USE_PREF_SIZE);  // Allow auto-resize
+        lbProductText.setMinHeight(Label.USE_PREF_SIZE);
         lbProductText.setStyle(UIStyle.labelMulLineStyle);
+
+        // Display the product image and information together
         HBox hbSearchResult = new HBox(5, ivProduct, lbProductText);
         hbSearchResult.setAlignment(Pos.CENTER_LEFT);
 
-        VBox vbSearchPage = new VBox(15, laPageTitle, hbId, hbName, hbBtns, hbSearchResult);
+        VBox vbSearchPage = new VBox(15, laPageTitle, hbId, hbBtns, hbSearchResult);
         vbSearchPage.setPrefWidth(COLUMN_WIDTH);
         vbSearchPage.setAlignment(Pos.TOP_CENTER);
         vbSearchPage.setStyle("-fx-padding: 15px;");
@@ -124,8 +139,9 @@ public class CustomerView  {
     }
 
     private VBox CreateTrolleyPage() {
-        Label laPageTitle = new Label("🛒🛒  Trolley 🛒🛒");
-        laPageTitle.setStyle(UIStyle.labelTitleStyle);
+        Label laPageTitle = new Label("Basket");
+        laPageTitle.setStyle(UIStyle.labelTitleStyle
+                + "; -fx-text-fill: royalblue;");;
 
         taTrolley = new TextArea();
         taTrolley.setEditable(false);
@@ -174,6 +190,9 @@ public class CustomerView  {
     private void buttonClicked(ActionEvent event) {
         Button btn = (Button)event.getSource();
         String action = btn.getText();
+        if (action.equals("🔍")) {
+            action = "Search";
+        }
         if(action.equals("Add to Trolley")){
             showTrolleyOrReceiptPage(vbTrolleyPage); //ensure trolleyPage shows if the last customer did not close their receiptPage
         }
@@ -185,7 +204,11 @@ public class CustomerView  {
 
 
     public void update(String productImageName, String productTextInfo, String trolley, String receipt) {
-        ivProduct.setImage(new Image(productImageName));
+        boolean hasImage = productImageName != null;
+
+        ivProduct.setImage(hasImage ? new Image(productImageName) : null);
+        ivProduct.setVisible(hasImage);
+        ivProduct.setManaged(hasImage); // Removes the empty image space
         lbProductText.setText(productTextInfo);
         taTrolley.setText(trolley);
         if (!receipt.equals("")) {

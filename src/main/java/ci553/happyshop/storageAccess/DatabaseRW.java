@@ -27,7 +27,6 @@ import java.util.List;
 
 public interface DatabaseRW {
 
-
     /**
      * Searches for products using a query string.
      * First attempts to find a product by exact ID match.

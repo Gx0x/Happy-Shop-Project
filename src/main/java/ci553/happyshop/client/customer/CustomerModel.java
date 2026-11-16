@@ -46,32 +46,64 @@ public class CustomerModel {
     }
 
     //SELECT productID, description, image, unitPrice,inStock quantity
-    void search(){
-        String productId = cusView.tfId.getText().trim();
-        if(!productId.isEmpty()){
-            searchResult = databaseRW.searchProductById(productId); //search database
-            if(searchResult != null && searchResult.getStockQuantity()>0){
-                double unitPrice = searchResult.getUnitPrice();
-                String description = searchResult.getProductDescription();
-                int stock = searchResult.getStockQuantity();
 
-                String baseInfo = String.format("Product_Id: %s\n%s,\nPrice: £%.2f", productId, description, unitPrice);
-                String quantityInfo = stock < 100 ? String.format("\n%d units left.", stock) : "";
-                searchResultProductText = baseInfo + quantityInfo;
-                System.out.println(searchResultProductText);
+// Declares a method named search.
+// void means it returns no value; () means it takes no arguments.
+// With no public/private modifier, it is accessible within the same package.
+void search() {
+    String keyword = cusView.tfId.getText().trim();
+
+    // Clear the previously selected product
+    searchResult = null;
+
+    if (!keyword.isEmpty()) {
+
+        // Keyword searches return a list of matching products.
+        // Pass the variable keyword, without writing its type here.
+        ArrayList<Product> results =
+                databaseRW.searchProductByKeyword(keyword);
+
+        // Check each matching product and select the first with stock.
+        // Product product means each list item is assigned to product.
+        for (Product product : results) {
+            if (product.getStockQuantity() > 0) {
+                searchResult = product;
+                break; // Stop looping once an available product is found
             }
-            else{
-                searchResult =null;
-                searchResultProductText = "No Product was found with ID " + productId;
-                System.out.println("No Product was found with ID " + productId);
-            }
-        }else{
-            searchResult =null;
-            searchResultProductText = "Please type ProductID";
-            System.out.println("Please type ProductID.");
         }
-        updateView();
+
+        if (searchResult != null) {
+            double unitPrice = searchResult.getUnitPrice();
+            String description = searchResult.getProductDescription();
+            int stock = searchResult.getStockQuantity();
+
+            String baseInfo = String.format(
+                    "Product_Id: %s\n%s\nPrice: £%.2f",
+                    searchResult.getProductId(),
+                    description,
+                    unitPrice
+            );
+
+            String quantityInfo = stock < 100
+                    ? String.format("\n%d units left.", stock)
+                    : "";
+
+            searchResultProductText = baseInfo + quantityInfo;
+
+        } else {
+            searchResultProductText =
+                    "No available product found for: " + keyword;
+        }
+
+    } else {
+        searchResultProductText = "  Please enter a product  ";
     }
+
+    System.out.println(searchResultProductText);
+    updateView();
+}
+
+
 
     void addToTrolley(){
         if(searchResult != null){
@@ -182,7 +214,7 @@ public class CustomerModel {
             System.out.println("Image absolute path: " + imageFullPath); // Debugging to ensure path is correct
         }
         else{
-            searchResultImageName = "imageHolder.jpg";
+            searchResultImageName = null;
         }
         cusView.update(searchResultImageName, searchResultProductText, trolleyContentsText, receiptContentsText);
     }
