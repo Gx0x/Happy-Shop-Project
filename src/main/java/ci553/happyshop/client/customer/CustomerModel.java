@@ -50,60 +50,52 @@ public class CustomerModel {
 // Declares a method named search.
 // void means it returns no value; () means it takes no arguments.
 // With no public/private modifier, it is accessible within the same package.
-void search() {
-    String keyword = cusView.tfId.getText().trim();
-
-    // Clear the previously selected product
-    searchResult = null;
-
-    if (!keyword.isEmpty()) {
-
-        // Keyword searches return a list of matching products.
-        // Pass the variable keyword, without writing its type here.
-        ArrayList<Product> results =
-                databaseRW.searchProductByKeyword(keyword);
-
-        // Check each matching product and select the first with stock.
-        // Product product means each list item is assigned to product.
-        for (Product product : results) {
-            if (product.getStockQuantity() > 0) {
-                searchResult = product;
-                break; // Stop looping once an available product is found
-            }
-        }
-
-        if (searchResult != null) {
-            double unitPrice = searchResult.getUnitPrice();
-            String description = searchResult.getProductDescription();
-            int stock = searchResult.getStockQuantity();
-
-            String baseInfo = String.format(
-                    "Product_Id: %s\n%s\nPrice: £%.2f",
-                    searchResult.getProductId(),
-                    description,
-                    unitPrice
-            );
-
-            String quantityInfo = stock < 100
-                    ? String.format("\n%d units left.", stock)
-                    : "";
-
-            searchResultProductText = baseInfo + quantityInfo;
-
-        } else {
-            searchResultProductText =
-                    "No available product found for: " + keyword;
-        }
-
-    } else {
-        searchResultProductText = "  Please enter a product  ";
+    // An empty database keyword matches all descriptions (SQL LIKE '%%').
+    void loadProducts() {
+        searchResult = null;
+        searchResultProductText = "";
+        cusView.showProducts(databaseRW.searchProductByKeyword(""));
+        updateView();
     }
 
-    System.out.println(searchResultProductText);
-    updateView();
-}
+    void search() {
+        String keyword = cusView.tfId.getText().trim();
+        searchResult = null;
+        ArrayList<Product> available = new ArrayList<>();
+        if (keyword.isEmpty()) {
+            searchResultProductText = "Please enter a product";
+        } else {
+            for (Product product : databaseRW.searchProductByKeyword(keyword)) {
+                if (product.getStockQuantity() > 0) {
+                    available.add(product);
+                }
+            }
+            searchResultProductText = "No available product found for: " + keyword;
+        }
+        cusView.showProducts(available);
+        if (available.isEmpty()) {
+            updateView();
+        } else {
+            selectProduct(available.get(0));
+        }
+    }
 
-
+    // Selecting an image changes the product used by Add to Trolley.
+    void selectProduct(Product product) {
+        if (product.getStockQuantity() <= 0) {
+            searchResult = null;
+            searchResultProductText = product.getProductDescription() + " is out of stock";
+        } else {
+            searchResult = product;
+            searchResultProductText = String.format(
+                    "%s\nPrice: \u00A3%.2f",
+                    product.getProductDescription(), product.getUnitPrice());
+            if (product.getStockQuantity() < 100) {
+                searchResultProductText += String.format("\n%d units left.", product.getStockQuantity());
+            }
+        }
+        updateView();
+    }
 
     void addToTrolley(){
         if(searchResult != null){
@@ -148,7 +140,7 @@ void search() {
                 );
                 System.out.println(receiptContentsText);
             }
-            else{ // Some products have insufficient stock — build an error message to inform the customer
+            else{ // Some products have insufficient stock â€” build an error message to inform the customer
                 StringBuilder errorMsg = new StringBuilder();
                 for(Product p : insufficientProducts){
                     errorMsg.append("\u2022 "+ p.getProductId()).append(", ")

@@ -1,10 +1,15 @@
 package ci553.happyshop.client.customer;
 
+import ci553.happyshop.catalogue.Product;
+
 public class CustomerController {
     public CustomerModel cusModel;
 
     public void doAction(String action) {
         switch (action) {
+            case "Load Products":
+                cusModel.loadProducts();
+                break;
             case "Search":
                 cusModel.search();
                 break;
@@ -23,4 +28,7 @@ public class CustomerController {
         }
     }
 
+    public void selectProduct(Product product) {
+        cusModel.selectProduct(product);
+    }
 }

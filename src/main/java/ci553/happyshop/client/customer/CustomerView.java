@@ -1,5 +1,9 @@
 package ci553.happyshop.client.customer;
 
+import ci553.happyshop.catalogue.Product;
+import ci553.happyshop.utility.StorageLocation;
+import java.nio.file.Paths;
+import java.util.List;
 import ci553.happyshop.utility.UIStyle;
 import ci553.happyshop.utility.WinPosManager;
 import ci553.happyshop.utility.WindowBounds;
@@ -18,8 +22,8 @@ import javafx.stage.Stage;
 /**
  * The CustomerView is separated into two sections by a line :
  *
- * 1. Search Page – Always visible, allowing customers to browse and search for products.
- * 2. the second page – display either the Trolley Page or the Receipt Page
+ * 1. Search Page â€“ Always visible, allowing customers to browse and search for products.
+ * 2. the second page â€“ display either the Trolley Page or the Receipt Page
  *    depending on the current context. Only one of these is shown at a time.
  */
 
@@ -40,6 +44,7 @@ public class CustomerView  {
                          // Optional extension: made accessible so it can be accessed by CustomerModel
 
     //four UI controls needs updating when program going on
+    private FlowPane productImages;
     private ImageView ivProduct; //image area in searchPage
     private Label lbProductText;//product text info in searchPage
     private TextArea taTrolley; //in trolley Page
@@ -81,10 +86,12 @@ public class CustomerView  {
         window.setTitle("HappyShop Standard Customer Client");
         WinPosManager.registerWindow(window,WIDTH,HEIGHT); //calculate position x and y for this window
         window.show();
+        cusController.doAction("Load Products");
         viewWindow=window;// Sets viewWindow to this window for future reference and management.
     }
 
     private VBox createSearchPage() {
+
 
         // SEARCH PANEL LABEL //
         Label laPageTitle = new Label("Search Products");
@@ -100,7 +107,9 @@ public class CustomerView  {
         btnSearch.setStyle(UIStyle.buttonStyle
                 + "; -fx-background-color: white;"
                 + "; -fx-border-color: royalblue");
-        btnSearch.setOnAction(this::buttonClicked);
+        btnSearch.setOnAction(event -> cusController.doAction("Search"));
+        tfId.setOnAction(event -> cusController.doAction("Search"));
+        tfId.setPromptText("Enter a product description");
 
         // SEARCH ROW LAYOUT //
         HBox hbId = new HBox(10, btnSearch, tfId); //Aligns Search button next to Search Text Box
@@ -113,11 +122,11 @@ public class CustomerView  {
         btnAddToTrolley.setOnAction(this::buttonClicked);
         HBox hbBtns = new HBox(10, btnAddToTrolley);
 
-        ivProduct = new ImageView();
-        ivProduct.setFitHeight(60);
-        ivProduct.setFitWidth(60);
-        ivProduct.setPreserveRatio(true); // Image keeps its original shape and fits inside 60×60
-        ivProduct.setSmooth(true); //make it smooth and nice-looking
+        ivProduct = new ImageView();       // Creates the image display
+        ivProduct.setFitHeight(60);        // Maximum displayed height: 60 pixels
+        ivProduct.setFitWidth(60);         // Maximum displayed width: 60 pixels
+        ivProduct.setPreserveRatio(true);  // Keeps the image's proportions
+        ivProduct.setSmooth(true);         // Uses smoother image scaling
 
         //Removed "Thank you" message
 
@@ -130,7 +139,14 @@ public class CustomerView  {
         HBox hbSearchResult = new HBox(5, ivProduct, lbProductText);
         hbSearchResult.setAlignment(Pos.CENTER_LEFT);
 
-        VBox vbSearchPage = new VBox(15, laPageTitle, hbId, hbBtns, hbSearchResult);
+        productImages = new FlowPane(15, 15);
+        productImages.setAlignment(Pos.TOP_CENTER);
+        ScrollPane gallery = new ScrollPane(productImages);
+        gallery.setFitToWidth(true);
+        gallery.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        VBox.setVgrow(gallery, Priority.ALWAYS);
+
+        VBox vbSearchPage = new VBox(15, laPageTitle, hbId, hbBtns, hbSearchResult, gallery);
         vbSearchPage.setPrefWidth(COLUMN_WIDTH);
         vbSearchPage.setAlignment(Pos.TOP_CENTER);
         vbSearchPage.setStyle("-fx-padding: 15px;");
@@ -190,9 +206,6 @@ public class CustomerView  {
     private void buttonClicked(ActionEvent event) {
         Button btn = (Button)event.getSource();
         String action = btn.getText();
-        if (action.equals("🔍")) {
-            action = "Search";
-        }
         if(action.equals("Add to Trolley")){
             showTrolleyOrReceiptPage(vbTrolleyPage); //ensure trolleyPage shows if the last customer did not close their receiptPage
         }
@@ -214,6 +227,33 @@ public class CustomerView  {
         if (!receipt.equals("")) {
             showTrolleyOrReceiptPage(vbReceiptPage);
             taReceipt.setText(receipt);
+        }
+    }
+
+    // Replace the gallery whenever the model supplies a new product list.
+    public void showProducts(List<Product> products) {
+        productImages.getChildren().clear();
+        for (Product product : products) {
+            ImageView thumbnail = new ImageView();
+            String filename = product.getProductImageName();
+            if (filename != null && !filename.isBlank()) {
+                String url = Paths.get(StorageLocation.imageFolder, filename)
+                        .toAbsolutePath().toUri().toString();
+                thumbnail.setImage(new Image(url));
+            }
+            thumbnail.setFitWidth(100);
+            thumbnail.setFitHeight(100);
+            thumbnail.setPreserveRatio(true);
+            thumbnail.setSmooth(true);
+
+            Button card = new Button(product.getProductDescription(), thumbnail);
+            card.setContentDisplay(ContentDisplay.TOP);
+            card.setWrapText(true);
+            card.setPrefWidth(140);
+            card.setMinHeight(140);
+            card.setAccessibleText("Select " + product.getProductDescription());
+            card.setOnAction(event -> cusController.selectProduct(product));
+            productImages.getChildren().add(card);
         }
     }
 
